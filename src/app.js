@@ -92,9 +92,23 @@ app.delete("/user", async (req, res) => {
 app.patch("/user", async (req,res) => {
   const userId = req.body.userId;
 
+//   try{
+//     const data = req.body;
+//     const user = await User.findByIdAndUpdate(userId, data);
+//     res.status(200).send("User updated successfully");
+//   }
+//   catch(err){
+//     res.status(400).send("Error in updating the user");
+//   }
+});
+
+//Updating a user using emailId
+app.patch("/user", async (req,res) => {
+  const emailId = req.body.emailId;
+
   try{
     const data = req.body;
-    const user = await User.findByIdAndUpdate(userId, data);
+    const user = await User.findByIdAndUpdate(emailId, data);
     res.status(200).send("User updated successfully");
   }
   catch(err){
@@ -114,8 +128,6 @@ connectDB()
   .catch((err) => {
     console.log("Database cannot be connected !!");
   });
-
-
 
 
 
