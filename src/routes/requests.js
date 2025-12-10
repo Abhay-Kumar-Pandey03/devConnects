@@ -6,7 +6,7 @@ const ConnectionRequest = require("../models/connectionRequest");
 const User = require("../models/user");
 const sendEmail = require("../utils/sendEmail");
 
-requestRouter.post("/request/send/:status/:toUserId", async (req, res) => {
+requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
         console.log("📌 Entered request/send route");
 
     try {
