@@ -7,6 +7,8 @@ const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
 
+require("./utils/cronjob");
+
 
 
 app.use(cors({
