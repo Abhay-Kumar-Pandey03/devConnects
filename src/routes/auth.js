@@ -35,6 +35,7 @@ authRouter.post("/signup", validateSignUpData, async (req, res) => {
     res.cookie("token", token, {
       expires: new Date(Date.now() + 8 * 3600000),
       httpOnly: true,
+      secure: process.env.NODE_ENV === "production",
       sameSite: "lax",
     });
 
@@ -70,6 +71,7 @@ authRouter.post("/login", async (req, res) => {
       res.cookie("token", token, {
         expires: new Date(Date.now() + 8 * 3600000),
         httpOnly: true,
+        secure: process.env.NODE_ENV === "production",
         sameSite: "lax",
       });
 
