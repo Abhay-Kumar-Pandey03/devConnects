@@ -34,8 +34,8 @@ const run = async (toEmailId, subject, body) => {
     const sendEmailCommand = createSendEmailCommand(
         "abhaysiddhu1000@gmail.com",
         "abhaypandey7067@gmail.com",
-        subject,
-        body
+        subject || "Notification from DevTinder",
+        body || "You have a new notification"
     );
 
     try {
