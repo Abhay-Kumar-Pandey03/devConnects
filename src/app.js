@@ -22,11 +22,13 @@ const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
 const requestsRouter = require("./routes/requests");
 const userRouter = require("./routes/user");
+const paymentRouter = require("./routes/payment");
 
 app.use("/api", authRouter);
 app.use("/api", profileRouter);
 app.use("/api", requestsRouter);
 app.use("/api", userRouter);
+app.use("/api", paymentRouter);
 
 connectDB()
   .then(() => {
