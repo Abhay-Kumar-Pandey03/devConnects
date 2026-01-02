@@ -5,7 +5,7 @@ const { userAuth } = require('../middlewares/auth');
 const Payment = require('../models/payment');
 const { membershipAmount } = require('../utils/constants');
 const { validatePaymentVerification, validateWebhookSignature } = require('razorpay/dist/utils/razorpay-utils');
-const { validate } = require('../models/user');
+const User = require('../models/user');
 
 paymentRouter.post('/payment/create', userAuth, async (req, res) => {
     try{
@@ -52,7 +52,7 @@ paymentRouter.post('/payment/create', userAuth, async (req, res) => {
 });
 
 paymentRouter.post("/payment/webhook", async(req, res) => {
-    
+
     try
     {
         const webhookSignature = req.get['X-Razorpay-Signature'];
