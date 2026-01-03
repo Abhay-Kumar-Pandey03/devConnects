@@ -1,5 +1,4 @@
 const express = require('express');
-const mongoose = require('mongoose');
 const paymentRouter = express.Router();
 const razorpayInstance = require('../utils/razorpay');
 const { userAuth } = require('../middlewares/auth');
@@ -52,69 +51,60 @@ paymentRouter.post('/payment/create', userAuth, async (req, res) => {
     }
 });
 
-paymentRouter.post(
-    "/payment/webhook",
-    express.raw({ type: "application/json" }),
-    async (req, res) => {
-        try {
-            const webhookSignature = req.headers["x-razorpay-signature"];
+paymentRouter.post("/payment/webhook", async (req, res) => {
 
-            const isWebhookValid = validateWebhookSignature(
-                req.body, // ✅ RAW BUFFER
-                webhookSignature,
-                process.env.RAZORPAY_WEBHOOK_SECRET
-            );
+    try {
 
-            if (!isWebhookValid) {
-                return res.status(400).json({ error: "Invalid webhook signature" });
-            }
+        console.log("Webhook event:", req.body.event);
 
-            const payload = JSON.parse(req.body.toString());
+        const webhookSignature = req.get('X-Razorpay-Signature');
 
-            console.log("Webhook event:", payload.event);
-            console.log("DB NAME:", mongoose.connection.name);
+        console.log("signature:", webhookSignature);
+        // console.log("correct:", req.get("X-Razorpay-Signature"));
 
-            // ✅ ONLY act on successful payment
-            if (payload.event !== "payment.captured") {
-                return res.status(200).json({ msg: "Event ignored" });
-            }
 
-            const paymentDetails = payload.payload.payment.entity;
+        const isWebhookValid = validateWebhookSignature(JSON.stringify(req.body), webhookSignature, process.env.RAZORPAY_WEBHOOK_SECRET);
 
-            const payment = await Payment.findOne({
-                orderId: paymentDetails.order_id,
-            });
-
-            if (!payment) {
-                return res.status(404).json({ error: "Payment not found" });
-            }
-
-            await Payment.updateOne(
-                { _id: payment._id },
-                { status: paymentDetails.status }
-            );
-
-            const updatedUser = await User.findByIdAndUpdate(
-                payment.userId,
-                {
-                    isPremium: true,
-                    membershipType: payment.notes.membershipType,
-                },
-                { new: true }
-            );
-
-            if (!updatedUser) {
-                return res.status(404).json({ error: "User not found" });
-            }
-
-            console.log("✅ User membership updated to premium");
-
-            return res.status(200).json({ msg: "Webhook processed successfully" });
-        } catch (err) {
-            console.error(err);
-            return res.status(500).json({ error: err.message });
+        if (!isWebhookValid) {
+            return res.status(400).json({ error: "Invalid webhook signature" });
         }
+
+        //Update the payment status in DB
+        const paymentDetails = req.body.payload.payment.entity;
+        
+        console.log("DB NAME:", mongoose.connection.name);
+        const payment = await Payment.findOne({ orderId: paymentDetails.order_id });
+        payment.status = paymentDetails.status;
+        await payment.save();
+        console.log("Payment status updated in DB");
+        console.log("DB NAME:", mongoose.connection.name);
+        
+        //Update the user to premium membership
+        console.log("Updating user membership to premium");
+        console.log("DB NAME:", mongoose.connection.name);
+        const user = await User.findOne({ _id: payment.userId });
+        console.log("DB NAME:", mongoose.connection.name);
+        if(!user) {
+            console.log("User not found for payment userId:", payment.userId);
+            return res.status(404).json({ error: "User not found" });
+        }
+        user.isPremium = true;
+        user.membershipType = payment.notes.membershipType;
+        await user.save();
+        console.log("User membership updated to premium");
+
+        // if(req.body.event === "payment.captured") {
+
+        // }
+        // if(req.body.event === "payment.failed") {}
+
+        //Return the status successful to webhook otherwise it will again-and-again send the same request
+        return res.status(200).json({ msg: "successful" });
+
     }
-);
+    catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
 
 module.exports = paymentRouter;
