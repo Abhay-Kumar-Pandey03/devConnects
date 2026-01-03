@@ -4,7 +4,7 @@ const razorpayInstance = require('../utils/razorpay');
 const { userAuth } = require('../middlewares/auth');
 const Payment = require('../models/payment');
 const { membershipAmount } = require('../utils/constants');
-const { validatePaymentVerification, validateWebhookSignature } = require('razorpay/dist/utils/razorpay-utils');
+const { validateWebhookSignature } = require('razorpay/dist/utils/razorpay-utils');
 const User = require('../models/user');
 
 paymentRouter.post('/payment/create', userAuth, async (req, res) => {
@@ -56,8 +56,8 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
     try {
         const webhookSignature = req.get('X-Razorpay-Signature');
 
-        console.log("signature:", req.get['X-Razorpay-Signature']);
-        console.log("correct:", req.get("X-Razorpay-Signature"));
+        console.log("signature:", webhookSignature);
+        // console.log("correct:", req.get("X-Razorpay-Signature"));
 
 
         const isWebhookValid = validateWebhookSignature(JSON.stringify(req.body), webhookSignature, process.env.RAZORPAY_WEBHOOK_SECRET);
@@ -72,6 +72,7 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
         const payment = await Payment.findOne({ orderId: paymentDetails.order_id });
         payment.status = paymentDetails.status;
         await payment.save();
+        console.log("Payment status updated in DB");
 
         //Update the user to premium membership
 
@@ -79,6 +80,7 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
         user.isPremium = true;
         user.membershipType = payment.notes.membershipType;
         await user.save();
+        console.log("User membership updated to premium");
 
         // if(req.body.event === "payment.captured") {
 
