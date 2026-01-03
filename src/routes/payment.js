@@ -10,7 +10,7 @@ const User = require('../models/user');
 paymentRouter.post('/payment/create', userAuth, async (req, res) => {
     try {
 
-        // console.log("Entryed into payment creation");
+        // console.log("Entered into payment creation");
         const { membershipType } = req.body;
         const { firstName, lastName, emailId } = req.user;
 
@@ -68,15 +68,19 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
 
         //Update the payment status in DB
         const paymentDetails = req.body.payload.payment.entity;
-
+        
+        console.log("DB NAME:", mongoose.connection.name);
         const payment = await Payment.findOne({ orderId: paymentDetails.order_id });
         payment.status = paymentDetails.status;
         await payment.save();
         console.log("Payment status updated in DB");
-
+        console.log("DB NAME:", mongoose.connection.name);
+        
         //Update the user to premium membership
         console.log("Updating user membership to premium");
+        console.log("DB NAME:", mongoose.connection.name);
         const user = await User.findOne({ _id: payment.userId });
+        console.log("DB NAME:", mongoose.connection.name);
         if(!user) {
             console.log("User not found for payment userId:", payment.userId);
             return res.status(404).json({ error: "User not found" });
