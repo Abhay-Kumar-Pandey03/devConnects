@@ -3,11 +3,11 @@ const { subDays, startOfDay, endOfDay } = require("date-fns");
 const sendEmail = require("./sendEmail");
 const ConnectionRequestModel = require("../models/connectionRequest");
 
-    console.log("Setting up cron job scheduler");
+    // console.log("Setting up cron job scheduler");
 
 cron.schedule("0 8 * * *", async () => {
     // Schedule emails to all people who got requests yesterday
-    console.log("Inside cron job scheduler");
+    // console.log("Inside cron job scheduler");
     try {
         console.log("Inside try block");
         const yesterday = subDays(new Date(), 1);
