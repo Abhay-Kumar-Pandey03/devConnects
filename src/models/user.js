@@ -90,13 +90,16 @@ const userSchema = new mongoose.Schema({
     isPremium: {
         type: Boolean,
         default: false,
+        select: false,
     },
 
     membershipType: {
         type: String,
+        default: null,
+        select: false,
     },
 
-});
+}, {    timestamps: true});
 
 userSchema.methods.getJWT = async function () {
     const user = this;
