@@ -75,8 +75,12 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
         console.log("Payment status updated in DB");
 
         //Update the user to premium membership
-
+        console.log("Updating user membership to premium");
         const user = await User.findOne({ _id: payment.userId });
+        if(!user) {
+            console.log("User not found for payment userId:", payment.userId);
+            return res.status(404).json({ error: "User not found" });
+        }
         user.isPremium = true;
         user.membershipType = payment.notes.membershipType;
         await user.save();
