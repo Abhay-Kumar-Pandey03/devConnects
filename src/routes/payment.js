@@ -1,4 +1,5 @@
 const express = require('express');
+const mongoose = require('mongoose');
 const paymentRouter = express.Router();
 const razorpayInstance = require('../utils/razorpay');
 const { userAuth } = require('../middlewares/auth');
@@ -60,8 +61,6 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
         const webhookSignature = req.get('X-Razorpay-Signature');
 
         console.log("signature:", webhookSignature);
-        // console.log("correct:", req.get("X-Razorpay-Signature"));
-
 
         const isWebhookValid = validateWebhookSignature(JSON.stringify(req.body), webhookSignature, process.env.RAZORPAY_WEBHOOK_SECRET);
 
