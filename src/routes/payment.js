@@ -70,27 +70,32 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
 
         //Update the payment status in DB
         const paymentDetails = req.body.payload.payment.entity;
-        
+
         console.log("DB NAME:", mongoose.connection.name);
         const payment = await Payment.findOne({ orderId: paymentDetails.order_id });
         payment.status = paymentDetails.status;
         await payment.save();
         console.log("Payment status updated in DB");
         console.log("DB NAME:", mongoose.connection.name);
-        
+
         //Update the user to premium membership
-        console.log("Updating user membership to premium");
-        console.log("DB NAME:", mongoose.connection.name);
-        const user = await User.findOne({ _id: payment.userId });
-        console.log("DB NAME:", mongoose.connection.name);
-        if(!user) {
-            console.log("User not found for payment userId:", payment.userId);
-            return res.status(404).json({ error: "User not found" });
+        if (payload.event !== "payment.captured") {
+            return res.status(200).json({ msg: "Event ignored" });
         }
-        user.isPremium = true;
-        user.membershipType = payment.notes.membershipType;
-        await user.save();
-        console.log("User membership updated to premium");
+
+        const updatedUser = await User.findByIdAndUpdate(
+            payment.userId,
+            {
+                $set: {
+                    isPremium: true,
+                    membershipType: payment.notes.membershipType,
+                },
+            },
+            { new: true }
+        );
+
+        console.log("UPDATED USER FROM DB:", updatedUser);
+
 
         // if(req.body.event === "payment.captured") {
 
