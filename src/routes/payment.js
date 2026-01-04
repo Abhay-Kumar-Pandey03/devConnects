@@ -1,5 +1,5 @@
 const express = require('express');
-const mongoose = require('mongoose');
+// const mongoose = require('mongoose');
 const paymentRouter = express.Router();
 const razorpayInstance = require('../utils/razorpay');
 const { userAuth } = require('../middlewares/auth');
@@ -56,11 +56,11 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
 
     try {
 
-        console.log("Webhook event:", req.body.event);
+        // console.log("Webhook event:", req.body.event);   
 
         const webhookSignature = req.get('X-Razorpay-Signature');
 
-        console.log("signature:", webhookSignature);
+        // console.log("signature:", webhookSignature);
 
         const isWebhookValid = validateWebhookSignature(JSON.stringify(req.body), webhookSignature, process.env.RAZORPAY_WEBHOOK_SECRET);
 
@@ -71,15 +71,20 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
         //Update the payment status in DB
         const paymentDetails = req.body.payload.payment.entity;
 
-        console.log("DB NAME:", mongoose.connection.name);
+        if (paymentDetails.status !== "captured") {
+            // console.log("Payment not captured, status:", paymentDetails.status);
+            return res.status(200).json({ msg: "Payment not successful" });
+        }
+
+        // console.log("DB NAME:", mongoose.connection.name);
         const payment = await Payment.findOne({ orderId: paymentDetails.order_id });
         payment.status = paymentDetails.status;
         await payment.save();
-        console.log("Payment status updated in DB");
-        console.log("DB NAME:", mongoose.connection.name);
+        // console.log("Payment status updated in DB");
+        // console.log("DB NAME:", mongoose.connection.name);
 
         //Update the user to premium membership
-        if (payload.event !== "payment.captured") {
+        if (req.body.event !== "payment.captured") {
             return res.status(200).json({ msg: "Event ignored" });
         }
 
@@ -94,7 +99,7 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
             { new: true }
         );
 
-        console.log("UPDATED USER FROM DB:", updatedUser);
+        // console.log("UPDATED USER FROM DB:", updatedUser);
 
 
         // if(req.body.event === "payment.captured") {
@@ -110,5 +115,23 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
         res.status(500).json({ error: err.message });
     }
 });
+
+paymentRouter.get("/premium/verify", userAuth, async (req, res) => {
+
+    try {
+        const user = req.user;
+
+        if (user.isPremium) {
+            return res.json({ isPremium: true });
+        }
+
+        return res.json({ isPremium: false });
+    }
+    catch (err) {
+        res.status(500).json({ error: err.message });
+    }
+});
+
+
 
 module.exports = paymentRouter;
