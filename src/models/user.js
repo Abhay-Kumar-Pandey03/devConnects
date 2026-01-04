@@ -90,13 +90,13 @@ const userSchema = new mongoose.Schema({
     isPremium: {
         type: Boolean,
         default: false,
-        select: false,
+        // select: false,
     },
 
     membershipType: {
         type: String,
         default: null,
-        select: false,
+        // select: false,
     },
 
 }, {    timestamps: true});
