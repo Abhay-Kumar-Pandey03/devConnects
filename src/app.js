@@ -6,10 +6,9 @@ const validator = require("validator");
 const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const cors = require("cors");
-
+const http = require("http");
+const initializeSocket = require("./utils/socket");
 require("./utils/cronjob");
-
-
 
 app.use(cors({
   origin: "http://localhost:5173",
@@ -30,11 +29,14 @@ app.use("/api", requestsRouter);
 app.use("/api", userRouter);
 app.use("/api", paymentRouter);
 
+const server = http.createServer(app);
+initializeSocket(server);
+
 connectDB()
   .then(() => {
     console.log("Database connected successfully");
 
-    app.listen(process.env.PORT, () => {
+    server.listen(process.env.PORT, () => {
       console.log("Server is successfully running on port");
     });
   })
