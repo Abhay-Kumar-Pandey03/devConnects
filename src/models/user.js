@@ -26,7 +26,7 @@ const userSchema = new mongoose.Schema({
         trim: true,
         lowercase: true,
         validate(value) {
-            if(!validator.isEmail(value)){
+            if (!validator.isEmail(value)) {
                 throw new Error("Invalid Email ID");
             }
         }
@@ -36,8 +36,8 @@ const userSchema = new mongoose.Schema({
         type: String,
         minLength: 8,
         required: true,
-        validate(value){
-            if(!validator.isStrongPassword(value)){
+        validate(value) {
+            if (!validator.isStrongPassword(value)) {
                 throw new Error("Password is not strong enough");
             }
         }
@@ -46,7 +46,7 @@ const userSchema = new mongoose.Schema({
     age: {
         type: Number,
         min: 18,
-        
+
 
     },
 
@@ -69,8 +69,8 @@ const userSchema = new mongoose.Schema({
         type: String,
         trim: true,
         default: "https://www.shutterstock.com/shutterstock/photos/2632690107/display_1500/stock-vector-default-avatar-social-media-display-picture-icon-isolated-vector-illustration-2632690107.jpg",
-        validate(value){
-            if(!validator.isURL(value)){
+        validate(value) {
+            if (!validator.isURL(value)) {
                 throw new Error("Invalid URL for photo");
             }
         }
@@ -79,7 +79,7 @@ const userSchema = new mongoose.Schema({
     about: {
         type: String,
         maxLength: 500,
-        
+
     },
 
     skills: {
@@ -99,18 +99,25 @@ const userSchema = new mongoose.Schema({
         // select: false,
     },
 
-}, {    timestamps: true});
+    role: {
+        type: String,
+        enum: ["user", "admin"],
+        default: "user",
+    },
+
+
+}, { timestamps: true });
 
 userSchema.methods.getJWT = async function () {
     const user = this;
-    const token = await jwt.sign({_id: user._id}, process.env.JWT_SECRET, {expiresIn : "7d"});
+    const token = await jwt.sign({ _id: user._id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
     return token;
 };
 
-userSchema.index({firstName: 1, lastName: 1});
+userSchema.index({ firstName: 1, lastName: 1 });
 
-userSchema.methods.validatePassword = async function(passwordInputByUser){
+userSchema.methods.validatePassword = async function (passwordInputByUser) {
     const user = this;
     const passwordHash = user.password;
     const isValidPassword = await bcrypt.compare(passwordInputByUser, passwordHash);

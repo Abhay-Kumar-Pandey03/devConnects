@@ -2,27 +2,32 @@ const cookieParser = require("cookie-parser");
 const jwt = require("jsonwebtoken");
 const User = require("../models/user");
 
-// const adminAuth = (req, res) => {
-//     const token = "xyz";
-//     const adminToken = "xyz";
-//     if(adminToken !== token){
-//         res.status(401).send("Unauthorized Access");
-//     }
-//     else{
-//         next();
-//     }
-// }
+/* ---------------- ADMIN AUTH ---------------- */
+const adminAuth = async (req, res, next) => {
+    try {
+        const token = req.cookies.token;
 
-// const userAuth = (req, res) =>{
-//     const token = "abc";
-//     const userToken = "abc";
-//     if(userToken !== token){
-//         res.status(401).send("Unauthorized access");
-//     }
-//     else{
-//         next();
-//     }
-// }
+        if (!token) {
+            return res.status(401).json({ message: "Authentication required" });
+        }
+
+        const decoded = jwt.verify(token, process.env.JWT_SECRET);
+
+        const user = await User.findById(decoded._id);
+        if (!user) {
+            return res.status(401).json({ message: "User not found" });
+        }
+
+        if (user.role !== "admin") {
+            return res.status(403).json({ message: "Admin access only" });
+        }
+
+        req.user = user;
+        next();
+    } catch (err) {
+        return res.status(401).json({ message: "Invalid or expired token" });
+    }
+};
 
 const userAuth = async(req, res, next) =>{
     try{
@@ -55,6 +60,6 @@ const userAuth = async(req, res, next) =>{
 }
 
 module.exports = {
-    // adminAuth,
+    adminAuth,
     userAuth,
 }
