@@ -4,6 +4,8 @@ Backend service for **devConnects**, a full-stack application focused on real-ti
 
 This service handles authentication, real-time chat, payments, email notifications, and admin functionality.
 
+The frontend is available on https://github.com/Abhay-Kumar-Pandey03/devConnects-frontend
+
 ## Features
 - JWT-based authentication and authorization
 - One-to-one real-time chat using WebSockets
