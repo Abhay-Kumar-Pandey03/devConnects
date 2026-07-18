@@ -8,7 +8,6 @@ const userSchema = new mongoose.Schema({
     firstName: {
         type: String,
         required: true,
-        // index : true,
         trim: true,
         maxLength: 30,
     },
@@ -58,11 +57,7 @@ const userSchema = new mongoose.Schema({
             values: ["male", "female", "other"],
             message: "${VALUE} is not a gender type"
         },
-        // validate(value) {
-        //     if(!["male", "female", "other"].includes(value.toLowerCase())){
-        //         throw new Error("Entered wrong gender!!")
-        //     }
-        // }
+        
     },
 
     photoUrl: {
@@ -90,13 +85,11 @@ const userSchema = new mongoose.Schema({
     isPremium: {
         type: Boolean,
         default: false,
-        // select: false,
     },
 
     membershipType: {
         type: String,
         default: null,
-        // select: false,
     },
 
     role: {

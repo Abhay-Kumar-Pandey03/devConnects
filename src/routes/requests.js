@@ -7,7 +7,7 @@ const User = require("../models/user");
 const sendEmail = require("../utils/sendEmail");
 
 requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res) => {
-        console.log("📌 Entered request/send route");
+        // console.log("📌 Entered request/send route");
 
     try {
 
@@ -46,10 +46,10 @@ requestRouter.post("/request/send/:status/:toUserId", userAuth, async (req, res)
             status
         });
         
-        console.log("Email sending step");
+        // console.log("Email sending step");
         const data = await connectionRequest.save();
         const emailRes = await sendEmail.run();
-        console.log("▶ SES Response:", emailRes?.$metadata || emailRes);
+        // console.log("SES Response:", emailRes?.$metadata || emailRes);
 
 
         res.json({

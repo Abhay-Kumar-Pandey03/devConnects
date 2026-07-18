@@ -19,7 +19,7 @@ const socketAuth = async (socket, next) => {
 
         const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
-        // 🔴 THIS IS THE KEY PART
+        // THIS IS THE KEY PART
         const user = await User.findById(decoded._id).select(
             "_id firstName lastName emailId photoUrl"
         );
@@ -28,7 +28,7 @@ const socketAuth = async (socket, next) => {
             return next(new Error("User not found"));
         }
 
-        socket.user = user; // ✅ full user attached
+        socket.user = user; // full user attached
         next();
     } catch (err) {
         next(new Error("Authentication failed"));

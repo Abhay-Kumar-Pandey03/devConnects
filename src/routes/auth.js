@@ -1,8 +1,9 @@
 const express = require("express");
-const authRouter = express.Router();
 const bcrypt = require("bcrypt");
 const { validateSignUpData } = require("../utils/validation");
 const User = require("../models/user");
+
+const authRouter = express.Router();
 
 // Sign up a user
 authRouter.post("/signup", validateSignUpData, async (req, res) => {
@@ -36,7 +37,7 @@ authRouter.post("/signup", validateSignUpData, async (req, res) => {
       expires: new Date(Date.now() + 8 * 3600000),
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
-      sameSite: "lax",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
     });
 
     return res.status(201).json({
@@ -58,7 +59,7 @@ authRouter.post("/login", async (req, res) => {
     const user = await User.findOne({ emailId: emailId });
 
     if (!user) {
-      throw new Error("Invalid Credentials");
+      throw new Error("User not found");
     }
 
     const isValidPassword = await user.validatePassword(password);
@@ -71,8 +72,8 @@ authRouter.post("/login", async (req, res) => {
       res.cookie("token", token, {
         expires: new Date(Date.now() + 8 * 3600000),
         httpOnly: true,
-        secure: process.env.NODE_ENV === "production",
-        sameSite: "lax",
+        secure: true,
+        sameSite: "none",
       });
 
       res.json({ data: user });

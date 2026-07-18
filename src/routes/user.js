@@ -4,18 +4,21 @@ const { userAuth } = require("../middlewares/auth");
 const ConnectionRequest = require("../models/connectionRequest");
 const User = require("../models/user");
 const userData = "firstName lastName age gender about skills photoUrl";
+const { calculateMatchScore } = require("../utils/matchScore");
+
+
 //Getting all the pending requests of loggedIn user
-userRouter.get("/user/requests/received", userAuth, async(req, res) => {
-    try{
+userRouter.get("/user/requests/received", userAuth, async (req, res) => {
+    try {
         const loggedInUser = req.user;
 
         const requests = await ConnectionRequest.find({
-            toUserId : loggedInUser._id,
-            status : "interested"
+            toUserId: loggedInUser._id,
+            status: "interested"
         }).populate(
             "fromUserId",
             userData);
-            // ["firstName", "lastName"]);
+        // ["firstName", "lastName"]);
 
         res.json({
             message: "Data fetched successfully",
@@ -23,83 +26,101 @@ userRouter.get("/user/requests/received", userAuth, async(req, res) => {
         });
 
     }
-    catch(err) {
+    catch (err) {
         res.status(404).send("Error : " + err.message);
     }
 });
 
 //Getting all connected users
-userRouter.get("/user/connections", userAuth, async(req, res) => {
-    try{
+userRouter.get("/user/connections", userAuth, async (req, res) => {
+    try {
         const loggedInUser = req.user;
         const connections = await ConnectionRequest.find({
             $or: [
-                {fromUserId : loggedInUser._id, status : "accepted"},
-                {toUserId : loggedInUser._id, status : "accepted"},
+                { fromUserId: loggedInUser._id, status: "accepted" },
+                { toUserId: loggedInUser._id, status: "accepted" },
             ]
         })
-        .populate("fromUserId", userData)
-        .populate("toUserId", userData);
+            .populate("fromUserId", userData)
+            .populate("toUserId", userData);
 
         // console.log(connections);
         const data = connections.map((row) => {
-            if(row.fromUserId._id.toString() === loggedInUser._id.toString()){
+            //Checking if loggedInuser is the sender
+            if (row.fromUserId._id.toString() === loggedInUser._id.toString()) {
                 return row.toUserId;
             }
+            //loggedInUser is the receiver
             return row.fromUserId;
-            // row.fromUserId;
         });
 
         // console.log(data);
 
-        res.json({message: "People connected with you", data : data});
+        res.json({ message: "People connected with you", data: data });
     }
-    catch(err) {
+    catch (err) {
         res.status(404).send("Error : " + err.message);
     }
 });
 
 //User feed API
-userRouter.get("/feed", userAuth, async(req, res) => {
+userRouter.get("/feed", userAuth, async (req, res) => {
     try {
+        const loggedInUser = req.user;
 
-        loggedInUser = req.user;
-        const page = parseInt( req.query.page ) || 1;
-        let limit = parseInt( req.query.limit ) || 10;
+        const page = parseInt(req.query.page) || 1;
+        let limit = parseInt(req.query.limit) || 10;
 
         limit = limit > 50 ? 50 : limit;
-        const skip = ( page - 1 ) * limit;
+        const skip = (page - 1) * limit;
 
-        //Find all the connection requests (sent + received)
         const connectionRequests = await ConnectionRequest.find({
-            $or : [
-            {fromUserId : loggedInUser._id},
-            {toUserId : loggedInUser._id}
+            $or: [
+                { fromUserId: loggedInUser._id },
+                { toUserId: loggedInUser._id }
             ]
         }).select("fromUserId toUserId");
 
         const hideFromUser = new Set();
+
         connectionRequests.forEach(req => {
             hideFromUser.add(req.fromUserId.toString());
             hideFromUser.add(req.toUserId.toString());
         });
 
         const users = await User.find({
-            $and : [
-                { _id: { $nin: Array.from(hideFromUser) } },
-                { _id : { $ne : loggedInUser._id } }
-            ]
+            _id: {
+                $nin: [...hideFromUser, loggedInUser._id]
+            }
         })
-        .select(userData)
-        .skip(skip)
-        .limit(limit);
+            .select(userData)
+            .skip(skip)
+            .limit(limit);
 
-        res.send(users);
+        // Added Match Score
+        const result = [];
 
+        for (let user of users) {
+            const userObj = user.toObject();
+
+            const score = await calculateMatchScore(
+                loggedInUser.skills,
+                user.skills
+            );
+
+            //matchScore is added to the user object dynamically and
+            // is not stored in the database
+            result.push({
+                ...user.toObject(),
+                matchScore: score
+            });
+        }
+
+        res.json({ data: result });
+
+    } catch (err) {
+        res.status(400).json({ message: err.message });
     }
-    catch(err) {
-        res.status(400).json({ message : err.message });
-    }
-})
+});
 
 module.exports = userRouter;

@@ -16,9 +16,10 @@
   "license": "ISC",
   "dependencies": {
     "@aws-sdk/client-ses": "^3.948.0",
+    "@google/generative-ai": "^0.24.1",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
-    "cors": "^2.8.5",
+    "cors": "^2.8.6",
     "date-fns": "^4.1.0",
     "dotenv": "^17.2.3",
     "express": "^5.1.0",

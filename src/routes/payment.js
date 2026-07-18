@@ -56,7 +56,7 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
 
     try {
 
-        // console.log("Webhook event:", req.body.event);   
+        // console.log("Webhook event:", req.body.event);
 
         const webhookSignature = req.get('X-Razorpay-Signature');
 
@@ -105,6 +105,7 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
             },
             { new: true }
         );
+        // res.json(updatedUser);
 
         // console.log("UPDATED USER FROM DB:", updatedUser);
 
@@ -115,7 +116,7 @@ paymentRouter.post("/payment/webhook", async (req, res) => {
         // if(req.body.event === "payment.failed") {}
 
         //Return the status successful to webhook otherwise it will again-and-again send the same request
-        return res.status(200).json({ msg: "successful" });
+        return res.status(200).json({ msg: "successful" , user : updatedUser});
 
     }
     catch (err) {

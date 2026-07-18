@@ -29,33 +29,51 @@ const adminAuth = async (req, res, next) => {
     }
 };
 
-const userAuth = async(req, res, next) =>{
-    try{
+const userAuth = async (req, res, next) => {
 
-//        console.log("Inside auth middleware");
-
-    //Read the token from req cookies
-    const cookies = req.cookies;
-    const {token} = cookies;
-    
-    //Validate the token
-    if(!token){
-        return res.status(401).send("Please Login");
+    if (req.method === "OPTIONS") {
+        return next();
     }
-    const decodedMessage = await jwt.verify(token, process.env.JWT_SECRET);
-    const {_id} = decodedMessage;
 
-    //Find the user
-    const user = await User.findById(_id);
+    try {
 
-    if(!user){
-        throw new Error("User not found");
+        //        console.log("Inside auth middleware");
+
+        //Read the token from req cookies
+        const cookies = req.cookies;
+        // console.log("Cookies : ", cookies);
+        const token = cookies?.token;
+
+        //Validate the token
+        if (!token) {
+            return res.status(401).json({
+                success: false,
+                message: "Please Login"
+            });
+        }
+        const decodedMessage = jwt.verify(token, process.env.JWT_SECRET);
+        // console.log("decoded msg : ", decodedMessage);  
+        const { _id } = decodedMessage;
+
+        //Find the user
+        const user = await User.findById(_id);
+        // console.log("User : ", user);
+
+        if (!user) {
+            return res.status(401).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+        req.user = user;
+        next();
     }
-    req.user = user;
-    next();
-    }
-    catch(err) {
-        res.status(400).send("Error : " + err.message);
+    catch (err) {
+        console.error("Auth Error:", err);
+        return res.status(401).json({
+            success: false,
+            message: err.message || "Authentication failed"
+        });
     }
 }
 

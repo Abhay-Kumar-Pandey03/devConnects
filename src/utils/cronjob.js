@@ -9,7 +9,7 @@ cron.schedule("0 8 * * *", async () => {
     // Schedule emails to all people who got requests yesterday
     // console.log("Inside cron job scheduler");
     try {
-        console.log("Inside try block");
+        // console.log("Inside try block");
         const yesterday = subDays(new Date(), 1);
         const startOfYesterday = startOfDay(yesterday);
         const endofyesterday = endOfDay(yesterday);
